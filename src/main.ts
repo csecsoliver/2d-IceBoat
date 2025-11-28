@@ -1,35 +1,77 @@
 import { Application, Assets, Sprite } from "pixi.js";
+import { Game } from "./gamestate";
 
-(async () => {
-  // Create a new application
-  const app = new Application();
+async function titlescreen() {
+  const app = document.getElementById("app")!;
+  app.innerHTML = "";
+  const h1_title = document.createElement("h1");
+  h1_title.innerText = "Ice Boat racing! (but 2D)";
+  app.appendChild(h1_title);
 
-  // Initialize the application
-  await app.init({ background: "#1099bb", resizeTo: window });
+  // Local multiplayer options
+  const container_local = document.createElement("div");
 
-  // Append the application canvas to the document body
-  document.getElementById("pixi-container")!.appendChild(app.canvas);
+  const h2_local_options = document.createElement("h2");
+  h2_local_options.innerText = "Game Options";
+  container_local.appendChild(h2_local_options);
 
-  // Load the bunny texture
-  const texture = await Assets.load("/assets/bunny.png");
+  const div_local_options = document.createElement("div");
 
-  // Create a bunny Sprite
-  const bunny = new Sprite(texture);
+  const input_local_playercount = document.createElement("input");
+  input_local_playercount.type = "number";
+  input_local_playercount.value = "1";
+  input_local_playercount.id = "input_local_playercount";
+  input_local_playercount.min = "1";
+  input_local_playercount.max = "4";
 
-  // Center the sprite's anchor point
-  bunny.anchor.set(0.5);
+  const label_local_playercount = document.createElement("label");
+  label_local_playercount.htmlFor = "input_local_playercount";
+  label_local_playercount.innerText = "Number of players: ";
 
-  // Move the sprite to the center of the screen
-  bunny.position.set(app.screen.width / 2, app.screen.height / 2);
+  const input_local_lapcount = document.createElement("input");
+  input_local_lapcount.type = "number";
+  input_local_lapcount.value = "1";
+  input_local_lapcount.id = "input_local_lapcount";
+  input_local_lapcount.min = "-8";
+  input_local_lapcount.max = "8";
 
-  // Add the bunny to the stage
-  app.stage.addChild(bunny);
+  const label_local_lapcount = document.createElement("label");
+  label_local_lapcount.htmlFor = "input_local_lapcount";
+  label_local_lapcount.innerText = "Number of laps: ";
 
-  // Listen for animate update
-  app.ticker.add((time) => {
-    // Just for fun, let's rotate mr rabbit a little.
-    // * Delta is 1 if running at 100% performance *
-    // * Creates frame-independent transformation *
-    bunny.rotation += 0.1 * time.deltaTime;
+  div_local_options.appendChild(document.createElement("hr"));
+  div_local_options.appendChild(label_local_playercount);
+  div_local_options.appendChild(input_local_playercount);
+  div_local_options.appendChild(document.createElement("hr"));
+  div_local_options.appendChild(label_local_lapcount);
+  div_local_options.appendChild(input_local_lapcount);
+  div_local_options.appendChild(document.createElement("hr"));
+  container_local.appendChild(div_local_options);
+
+  const button_local_start = document.createElement("button");
+  button_local_start.innerText = "Start Game";
+  button_local_start.id = "button_local_start";
+  button_local_start.addEventListener("click", () => {
+    const playercount = parseInt(
+      (document.getElementById("input_local_playercount") as HTMLInputElement)
+        .value,
+      10,
+    );
+    local_game(playercount);
   });
-})();
+  // end of local multiplayer
+
+  container_local.appendChild(button_local_start);
+  app.appendChild(container_local);
+}
+
+async function local_game(players: number) {
+  // Create a new application
+  const game = new Game();
+  // Listen for animate updates
+  await game.init(players);
+  game.app.ticker.add((time) => {
+    game.tick();
+  });
+}
+titlescreen();
