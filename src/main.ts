@@ -66,12 +66,11 @@ async function titlescreen() {
 }
 
 async function local_game(players: number) {
-  // Create a new application
   const game = new Game();
-  // Listen for animate updates
   await game.init(players);
+
   game.app.ticker.add((time) => {
-    game.tick();
+    game.tick(time);
   });
 }
 titlescreen();

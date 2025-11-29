@@ -1,4 +1,4 @@
-import { Application, Assets, Color } from "pixi.js";
+import { Application, Assets, Color, Ticker } from "pixi.js";
 import { Boat } from "./boat";
 import Victor from "victor";
 
@@ -38,9 +38,10 @@ export class Game {
       this.app.stage.addChild(this.players[i].sprite);
     }
   }
-  tick() {
+  tick(time: Ticker) {
     for (const i of this.players) {
-      i.tick();
+      i.tick(time);
     }
+    this.app.
   }
 }

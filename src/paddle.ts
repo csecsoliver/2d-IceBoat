@@ -14,4 +14,5 @@ export class Paddle {
     this.sprite.anchor.set(0.5, 0.5);
     this.sprite.scale.set(1.5, 1.5);
   }
+  tick(delta: number) {}
 }
