@@ -1,4 +1,3 @@
-import { Application, Assets, Sprite } from "pixi.js";
 import { Game } from "./gamestate";
 
 async function titlescreen() {
