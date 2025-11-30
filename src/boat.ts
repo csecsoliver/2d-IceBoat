@@ -10,10 +10,10 @@ export class Boat {
 
   speed: Victor = new Victor(0, 0);
   maxSpeed: number = 10;
-  acceleration: number = 0.04; // units per frame at 60fps
+  acceleration: number = 0.08; // units per frame at 60fps
 
   turning_speed: number = 0;
-  turning_accel: number = 0.003; // radians per frame at 60fps
+  turning_accel: number = 0.006; // radians per frame at 60fps
   turning_max: number = 0.05; // max radians per frame at 60fps
 
   friction: number = 0.002; // decay per frame at 60fps (lower = more slippery like ice)
@@ -50,9 +50,24 @@ export class Boat {
   }
   async tick(time: Ticker) {
     const dt = time.deltaTime;
+    const keybinds = Game.keybinds[this.playernum];
 
     this.sprite.position.x = this.position.x;
     this.sprite.position.y = this.position.y;
+
+    let leftPaddleActive = false;
+    let rightPaddleActive = false;
+    if (this.game.pressed_keys.has(keybinds.forward)) {
+      rightPaddleActive = !this.game.pressed_keys.has(keybinds.right);
+      leftPaddleActive = !this.game.pressed_keys.has(keybinds.left);
+    } else {
+      leftPaddleActive = this.game.pressed_keys.has(keybinds.right);
+      rightPaddleActive = this.game.pressed_keys.has(keybinds.left);
+    }
+
+
+    this.paddles[0].tick(dt, leftPaddleActive);
+    this.paddles[1].tick(dt, rightPaddleActive);
 
     // Apply friction using exponential decay (works correctly with any dt)
     this.speed.multiplyScalar(Math.pow(1 - this.friction, dt));
