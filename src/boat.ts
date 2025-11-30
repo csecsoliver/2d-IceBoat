@@ -26,6 +26,10 @@ export class Boat {
   paddles: Paddle[] = [];
 
   alive: boolean = true;
+  finished: boolean = false;
+
+  infinish: boolean = true;
+  laps_done: number = 0;
 
   constructor(
     position: Victor,
@@ -87,6 +91,7 @@ export class Boat {
     this.position.add(this.speed.clone().multiplyScalar(dt));
 
     this.handle_input(dt);
+    this.handle_finish_line();
     return;
   }
   handle_input(dt: number) {
@@ -94,7 +99,7 @@ export class Boat {
     if (this.game.pressed_keys.has(keybinds.forward)) {
       const forward_vector = new Victor(
         Math.cos(this.sprite.rotation - Math.PI / 2),
-        Math.sin(this.sprite.rotation - Math.PI / 2),
+        Math.sin(this.sprite.rotation - Math.PI / 2)
       );
       this.speed.add(forward_vector.multiplyScalar(this.acceleration * dt));
     }
@@ -103,7 +108,7 @@ export class Boat {
       // Turning adds forward thrust (Minecraft ice boat behavior)
       const facing = new Victor(
         Math.cos(this.sprite.rotation - 0.5 - Math.PI / 2),
-        Math.sin(this.sprite.rotation - 0.5 - Math.PI / 2),
+        Math.sin(this.sprite.rotation - 0.5 - Math.PI / 2)
       );
       this.speed.add(facing.multiplyScalar(this.turn_thrust * dt));
     }
@@ -112,11 +117,13 @@ export class Boat {
       // Turning adds forward thrust (Minecraft ice boat behavior)
       const facing = new Victor(
         Math.cos(this.sprite.rotation + 0.5 - Math.PI / 2),
-        Math.sin(this.sprite.rotation + 0.5 - Math.PI / 2),
+        Math.sin(this.sprite.rotation + 0.5 - Math.PI / 2)
       );
       this.speed.add(facing.multiplyScalar(this.turn_thrust * dt));
     }
-    this.handle_track_collision();
+    if (!this.finished) {
+      this.handle_track_collision();
+    }
   }
   handle_track_collision() {
     const track = this.game.track;
@@ -127,7 +134,7 @@ export class Boat {
         this.sprite
           .getBounds()
           .rectangle.intersects(
-            new Bounds(piece.x1, piece.y1, piece.x2, piece.y2).rectangle,
+            new Bounds(piece.x1, piece.y1, piece.x2, piece.y2).rectangle
           )
       ) {
         ontrack = true;
@@ -145,5 +152,29 @@ export class Boat {
     this.sprite.scale.x -= 0.05;
     this.sprite.scale.y -= 0.05;
     if (this.sprite.alpha < 0) this.sprite.alpha = 0;
+  }
+  handle_finish_line() {
+    const line = this.game.track!.line;
+    if (
+      this.sprite
+        .getBounds()
+        .rectangle.intersects(
+          new Bounds(line.x1, line.y1, line.x2, line.y2).rectangle
+        ) &&
+      !this.infinish && this.speed.x > 0
+    ) {
+      this.infinish = true;
+      this.laps_done += 1;
+      console.log(this.laps_done);
+    } else if (
+      this.infinish &&
+      !this.sprite
+        .getBounds()
+        .rectangle.intersects(
+          new Bounds(line.x1, line.y1, line.x2, line.y2).rectangle
+        )
+    ) {
+      this.infinish = false;
+    }
   }
 }

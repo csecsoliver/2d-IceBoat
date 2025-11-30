@@ -16,16 +16,21 @@ body {
   justify-content: space-around;
   align-items: center;
 }
+#app>div{
+  margin: 0 20px;
+}
 #log {
   position: absolute;
   top: 10px;
   left: 10px;
   width: fit-content;
   max-height: 90vh;
-  overflow-y: auto;
   background-color: rgba(0, 0, 0, 0.5);
   padding: 10px;
   border-radius: 5px;
-  font-family: monospace;
   font-size: 14px;
+}
+canvas {
+  border: 1px solid #ffffff;
+
 }

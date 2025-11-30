@@ -38,6 +38,9 @@ export class Game {
   track: Track | null = tracks[5];
   start_angle: number = Math.PI / 2;
   move: boolean = true;
+  laps: number = 1;
+  placings: Boat[] = [];
+  finish_times: number[] = [];
   onGameOver: (() => void) | null = null;
 
   getStartPositions(playercount: number): Victor[] {
@@ -61,7 +64,14 @@ export class Game {
     return positions;
   }
 
-  async init(playercount: number) {
+  async init(playercount: number, laps: number) {
+    this.laps = laps;
+    document.addEventListener("keydown", (e) => {
+      this.pressed_keys.add((e as KeyboardEvent).code);
+    });
+    document.addEventListener("keyup", (e) => {
+      this.pressed_keys.delete((e as KeyboardEvent).code);
+    });
     await this.app.init({ width: 1000, height: 800, backgroundColor: 0x111111 });
     document.getElementById("app")!.innerHTML = "";
     document.getElementById("app")!.appendChild(this.app.canvas);
@@ -101,18 +111,12 @@ export class Game {
     setTimeout(() => {
       this.app.stage.removeChild(text);
     }, 1000);
-    document.addEventListener("keydown", (e) => {
-      this.pressed_keys.add((e as KeyboardEvent).code);
-    });
-    document.addEventListener("keyup", (e) => {
-      this.pressed_keys.delete((e as KeyboardEvent).code);
-    });
   }
   draw_track() {
     if (!this.track) return;
     for (const piece of this.track.pieces) {
       const graphics = new Graphics();
-      graphics.setFillStyle({ width: 4, color: 0xffffff });
+      graphics.setFillStyle({ color: 0xffffff });
       graphics.rect(
         piece.x1,
         piece.y1,
@@ -123,26 +127,42 @@ export class Game {
       this.app.stage.addChild(graphics);
     }
     const graphics = new Graphics();
-    graphics.setStrokeStyle({ width: 4, color: 0xff0000 });
-    graphics.moveTo(this.track.line.x1, this.track.line.y1);
-    graphics.lineTo(this.track.line.x2, this.track.line.y2);
+    graphics.setFillStyle({ color: 0xff0000 });
+    this.track.line.x2 = this.track.line.x1 + 1;
+    graphics.rect(
+      this.track.line.x1,
+      this.track.line.y1,
+      this.track.line.x2 - this.track.line.x1 + 4,
+      this.track.line.y2 - this.track.line.y1 
+    );
     console.log("Track drawn");
-    graphics.stroke();
+    graphics.fill();
     this.app.stage.addChild(graphics);
   }
   tick(time: Ticker) {
     let alive_counter = 0;
-    this.timer += time.deltaMS;
+    let finished_counter = 0;
     this.timerText.text = `${(this.timer / 1000).toFixed(3)}s`;
     for (const i of this.players) {
-      if (i.alive && this.move) {
+      if (i.alive && this.move && !i.finished) {
         i.tick(time);
         alive_counter++;
+        if (i.laps_done >= this.laps) {
+          i.finished = true;
+          this.placings.push(i);
+          this.finish_times[i.playernum] = parseFloat(((this.timer + time.deltaMS) / 1000).toFixed(3));
+          document.getElementById("log")!.innerHTML = `<pre>${this.placings.map((p, index) => `#${index + 1}: ${Game.colors[4][p.playernum]} - ${p.laps_done} laps in ${this.finish_times[p.playernum] || 0} seconds`).join("\n")}</pre>`;
+        }
       } else if (!i.alive) {
         i.fadeout();
       } else if (!this.move) {
         alive_counter++;
+      } else if (i.finished) {
+        i.tick(time);
+        alive_counter++;
+        finished_counter++;
       }
+      
     }
     if (
       ((this.players.length > 1 && alive_counter <= 1) || alive_counter < 1) &&
@@ -156,16 +176,39 @@ export class Game {
       }
       this.move = false;
     }
+    if (finished_counter >= this.players.length) {
+      this.gameover("All players finished!");
+      this.move = false;
+    }
+    if (this.move) {
+      this.timer += time.deltaMS;
+    }
   }
   gameover(msg: string) {
-    document.getElementById("log")!.innerHTML = `<pre>${msg}</pre>`;
+    
+    document.getElementById("log")!.innerHTML += `<pre>${msg}</pre>`;
     const button_restart = document.createElement("button");
-    button_restart.innerText = "Restart Game";
+    button_restart.innerText = "Titlescreen";
     button_restart.id = "button_restart_game";
     button_restart.addEventListener("click", () => {
       this.onGameOver?.();
       document.getElementById("log")!.innerHTML = "";
     });
+    const button_retry = document.createElement("button");
+    button_retry.innerText = "Retry";
+    button_retry.id = "button_retry_game";
+    button_retry.addEventListener("click", async () => {
+      const game = new Game();
+      game.onGameOver = this.onGameOver;
+      game.track = this.track;
+      document.getElementById("log")!.innerHTML = "";
+      await game.init(this.players.length, this.laps);
+      game.app.ticker.add((time) => {
+        game.tick(time);
+      });
+      console.log("Retrying game");
+    });
+    document.getElementById("log")!.appendChild(button_retry);
     document.getElementById("log")!.appendChild(button_restart);
   }
 }

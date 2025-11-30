@@ -10,7 +10,7 @@ export class Paddle {
   static offsets: Victor[] = [new Victor(-15, 0), new Victor(15, 0)];
 
   strokePhase: number = 0; // current position
-  strokeSpeed: number = 0.25;
+  strokeSpeed: number = 0.15;
   maxStrokeAngle: number = 0.5; // max rotation during stroke
 
   constructor(owner: Boat, num: number, texture: Texture) {
