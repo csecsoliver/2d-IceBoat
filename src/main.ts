@@ -58,7 +58,6 @@ async function titlescreen() {
     );
     local_game(playercount);
   });
-  // end of local multiplayer
 
   container_local.appendChild(button_local_start);
   app.appendChild(container_local);

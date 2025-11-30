@@ -1,4 +1,4 @@
-import { Application, Assets, Color, Ticker } from "pixi.js";
+import { Application, Assets, Color, Texture, Ticker } from "pixi.js";
 import { Boat } from "./boat";
 import Victor from "victor";
 import { Keybinds } from "./types";
@@ -31,9 +31,8 @@ export class Game {
     await this.app.init({ background: "#1099bb", resizeTo: window });
     document.getElementById("app")!.innerHTML = "";
     document.getElementById("app")!.appendChild(this.app.canvas);
-    const texture = await Assets.load("/assets/boat.webp");
-    const paddletexture = await Assets.load("/assets/paddle.webp");
-
+    const texture: Texture = await Assets.load("/assets/boat.webp");
+    const paddletexture: Texture = await Assets.load("/assets/paddle.webp");
     for (let i = 0; i < playercount; i++) {
       this.players.push(
         new Boat(
@@ -46,6 +45,9 @@ export class Game {
         ),
       );
       this.app.stage.addChild(this.players[i].sprite);
+      for (const paddle of this.players[i].paddles) {
+        this.app.stage.addChild(paddle.sprite);
+      }
     }
     document.addEventListener("keydown", (e) => {
       this.pressed_keys.add((e as KeyboardEvent).code);
