@@ -13,3 +13,16 @@ body {
   justify-content: space-around;
   align-items: center;
 }
+#log {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: fit-content;
+  max-height: 90vh;
+  overflow-y: auto;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 10px;
+  border-radius: 5px;
+  font-family: monospace;
+  font-size: 14px;
+}

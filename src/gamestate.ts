@@ -30,6 +30,9 @@ export class Game {
   ];
   track: Track | null = tracks[5];
   start_angle: number = Math.PI / 2;
+  move: boolean = true;
+  onGameOver: (() => void) | null = null;
+
   getStartPositions(playercount: number): Victor[] {
     if (!this.track) {
       return [
@@ -107,12 +110,37 @@ export class Game {
     this.app.stage.addChild(graphics);
   }
   tick(time: Ticker) {
+    let alive_counter = 0;
     for (const i of this.players) {
-      if (i.alive) {
+      if (i.alive && this.move) {
         i.tick(time);
-      } else {
+        alive_counter++;
+      } else if (!i.alive) {
         i.fadeout();
       }
     }
+    if (
+      ((this.players.length > 1 && alive_counter <= 1) || alive_counter < 1) &&
+      this.move
+    ) {
+      const winners = this.players.filter((p) => p.alive);
+      if (winners.length > 0) {
+        this.gameover(`Player ${winners[0].playernum + 1} wins!`);
+      } else {
+        this.gameover("No winners!");
+      }
+      this.move = false;
+    }
+  }
+  gameover(msg: string) {
+    document.getElementById("log")!.innerHTML = `<pre>${msg}</pre>`;
+    const button_restart = document.createElement("button");
+    button_restart.innerText = "Restart Game";
+    button_restart.id = "button_restart_game";
+    button_restart.addEventListener("click", () => {
+      this.onGameOver?.();
+      document.getElementById("log")!.innerHTML = "";
+    });
+    document.getElementById("log")!.appendChild(button_restart);
   }
 }

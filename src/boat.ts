@@ -142,6 +142,7 @@ export class Boat {
     }
   }
   fadeout() {
+    // the paddles staying in place seems too goofy to worry about xdd
     this.sprite.alpha -= 0.03;
     this.sprite.scale.x -= 0.05;
     this.sprite.scale.y -= 0.05;

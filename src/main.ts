@@ -1,7 +1,7 @@
 import { Game } from "./gamestate";
 import { tracks } from "./tracks";
 
-async function titlescreen() {
+export async function titlescreen() {
   const app = document.getElementById("app")!;
   app.innerHTML = "";
   const h1_title = document.createElement("h1");
@@ -72,7 +72,7 @@ async function titlescreen() {
     const playercount = parseInt(
       (document.getElementById("input_local_playercount") as HTMLInputElement)
         .value,
-      10,
+      10
     );
     local_game(playercount);
   });
@@ -83,6 +83,7 @@ async function titlescreen() {
 
 async function local_game(players: number) {
   const game = new Game();
+  game.onGameOver = titlescreen;
   game.track = tracks.find(
     (t) =>
       t.name ===
@@ -97,4 +98,10 @@ async function local_game(players: number) {
     game.tick(time);
   });
 }
-titlescreen();
+if (
+  document.getElementById("app")!.innerHTML.trim() ===
+  '<div id="pixi-container"></div>'
+) {
+  titlescreen();
+}
+console.log(document.getElementById("app")!.innerHTML.trim());
