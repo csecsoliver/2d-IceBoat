@@ -1,4 +1,4 @@
-import { Color, Sprite, Texture, Ticker } from "pixi.js";
+import { Bounds, Color, Sprite, Texture, Ticker } from "pixi.js";
 import { Paddle } from "./paddle";
 import Victor from "victor";
 import { Game } from "./gamestate";
@@ -16,7 +16,7 @@ export class Boat {
   turning_accel: number = 0.006; // radians per frame at 60fps
   turning_max: number = 0.05; // max radians per frame at 60fps
 
-  friction: number = 0.002; // decay per frame at 60fps (lower = more slippery like ice)
+  friction: number = 0.01; // decay per frame at 60fps (lower = more slippery like ice)
   turning_friction: number = 0.01; // decay per frame at 60fps
   turn_thrust: number = 0.01; // forward thrust added when turning (Minecraft-like)
 
@@ -26,13 +26,15 @@ export class Boat {
 
   paddles: Paddle[] = [];
 
+  alive: boolean = true;
+
   constructor(
     position: Victor,
     playernum: number,
     color: Color,
     texture: Texture,
     paddletexture: Texture,
-    game: Game,
+    game: Game
   ) {
     this.game = game;
     this.position = position;
@@ -65,7 +67,6 @@ export class Boat {
       rightPaddleActive = this.game.pressed_keys.has(keybinds.left);
     }
 
-
     this.paddles[0].tick(dt, leftPaddleActive);
     this.paddles[1].tick(dt, rightPaddleActive);
 
@@ -79,7 +80,7 @@ export class Boat {
 
     this.turning_speed = Math.max(
       -this.turning_max,
-      Math.min(this.turning_max, this.turning_speed),
+      Math.min(this.turning_max, this.turning_speed)
     );
 
     this.sprite.rotation += this.turning_speed * dt;
@@ -116,5 +117,34 @@ export class Boat {
       );
       this.speed.add(facing.multiplyScalar(this.turn_thrust * dt));
     }
+    this.handle_track_collision();
+  }
+  handle_track_collision() {
+    const track = this.game.track;
+    if (!track) return;
+    let ontrack = false;
+    // Check for collision with track pieces
+    for (const piece of track.pieces) {
+      if (
+        this.sprite
+          .getBounds()
+          .rectangle.intersects(
+            new Bounds(piece.x1, piece.y1, piece.x2, piece.y2).rectangle,
+          )
+      ) {
+        ontrack = true;
+        break;
+      }
+    }
+    if (!ontrack) {
+      console.log("Off track!");
+      this.alive = false;
+    }
+  }
+  fadeout() {
+    this.sprite.alpha -= 0.03;
+    this.sprite.scale.x -= 0.05;
+    this.sprite.scale.y -= 0.05;
+    if (this.sprite.alpha < 0) this.sprite.alpha = 0;
   }
 }

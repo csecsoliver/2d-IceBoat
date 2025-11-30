@@ -1,4 +1,5 @@
 import { Game } from "./gamestate";
+import { tracks } from "./tracks";
 
 async function titlescreen() {
   const app = document.getElementById("app")!;
@@ -38,6 +39,19 @@ async function titlescreen() {
   label_local_lapcount.htmlFor = "input_local_lapcount";
   label_local_lapcount.innerText = "Number of laps: ";
 
+  const input_local_track_selector = document.createElement("select");
+  input_local_track_selector.id = "input_local_track_selector";
+  for (const track of tracks) {
+    const option = document.createElement("option");
+    option.value = track.name;
+    option.innerText = track.name;
+    input_local_track_selector.appendChild(option);
+  }
+
+  const label_local_track_selector = document.createElement("label");
+  label_local_track_selector.htmlFor = "input_local_track_selector";
+  label_local_track_selector.innerText = "Select track: ";
+
   div_local_options.appendChild(document.createElement("hr"));
   div_local_options.appendChild(label_local_playercount);
   div_local_options.appendChild(input_local_playercount);
@@ -45,6 +59,10 @@ async function titlescreen() {
   div_local_options.appendChild(label_local_lapcount);
   div_local_options.appendChild(input_local_lapcount);
   div_local_options.appendChild(document.createElement("hr"));
+  div_local_options.appendChild(label_local_track_selector);
+  div_local_options.appendChild(input_local_track_selector);
+  div_local_options.appendChild(document.createElement("hr"));
+
   container_local.appendChild(div_local_options);
 
   const button_local_start = document.createElement("button");
@@ -65,8 +83,16 @@ async function titlescreen() {
 
 async function local_game(players: number) {
   const game = new Game();
+  game.track = tracks.find(
+    (t) =>
+      t.name ===
+      (
+        document.getElementById(
+          "input_local_track_selector",
+        ) as HTMLSelectElement
+      ).value,
+  )!;
   await game.init(players);
-
   game.app.ticker.add((time) => {
     game.tick(time);
   });
