@@ -1,4 +1,4 @@
-import { Application, Assets, Color, Graphics, Texture, Ticker } from "pixi.js";
+import { Application, Assets, Color, Graphics, HTMLText, Text, Texture, Ticker } from "pixi.js";
 import { Boat } from "./boat";
 import Victor from "victor";
 import { Keybinds, Track } from "./types";
@@ -15,6 +15,13 @@ export class Game {
     ["red", "blue", "green"],
     ["red", "blue", "green", "yellow"],
   ];
+  timer: number = 0;
+  timerText: Text = new Text({
+      text: `${(this.timer / 1000).toFixed(2)}`,
+      style: { fill: 0xff00ff, fontSize: 24, fontFamily: "monospace" },
+      x: 10,
+      y: 10,
+    });
   // static position_vectors = [
   //   new Victor(100, 100),
   //   new Victor(200, 100),
@@ -55,7 +62,7 @@ export class Game {
   }
 
   async init(playercount: number) {
-    await this.app.init({ resizeTo: window });
+    await this.app.init({ width: 1000, height: 800, backgroundColor: 0x111111 });
     document.getElementById("app")!.innerHTML = "";
     document.getElementById("app")!.appendChild(this.app.canvas);
     const texture: Texture = await Assets.load("/assets/boat.webp");
@@ -78,7 +85,22 @@ export class Game {
       for (const paddle of this.players[i].paddles) {
         this.app.stage.addChild(paddle.sprite);
       }
+      this.players[i].tick(this.app.ticker); // to be at the start
     }
+    const text = new Text({text: "Ready?", style: {fill: 0xff00ff, fontSize: 64, fontFamily: "monospace"}});
+    this.app.stage.addChild(text);
+    text.x = this.app.screen.width / 2;
+    text.y = this.app.screen.height / 2;
+    text.anchor.set(0.5);
+    await new Promise<void>((resolve) => setTimeout(() => resolve(), 1000));
+    text.text = "Set!";
+    await new Promise<void>((resolve) => setTimeout(() => resolve(), 1000));
+    text.text = "Go!";
+
+    this.app.stage.addChild(this.timerText);
+    setTimeout(() => {
+      this.app.stage.removeChild(text);
+    }, 1000);
     document.addEventListener("keydown", (e) => {
       this.pressed_keys.add((e as KeyboardEvent).code);
     });
@@ -100,7 +122,6 @@ export class Game {
       graphics.fill();
       this.app.stage.addChild(graphics);
     }
-    // draw starting/finishing line in red
     const graphics = new Graphics();
     graphics.setStrokeStyle({ width: 4, color: 0xff0000 });
     graphics.moveTo(this.track.line.x1, this.track.line.y1);
@@ -111,12 +132,16 @@ export class Game {
   }
   tick(time: Ticker) {
     let alive_counter = 0;
+    this.timer += time.deltaMS;
+    this.timerText.text = `${(this.timer / 1000).toFixed(3)}s`;
     for (const i of this.players) {
       if (i.alive && this.move) {
         i.tick(time);
         alive_counter++;
       } else if (!i.alive) {
         i.fadeout();
+      } else if (!this.move) {
+        alive_counter++;
       }
     }
     if (
@@ -125,7 +150,7 @@ export class Game {
     ) {
       const winners = this.players.filter((p) => p.alive);
       if (winners.length > 0) {
-        this.gameover(`Player ${winners[0].playernum + 1} wins!`);
+        this.gameover(`Player ${Game.colors[4][winners[0].playernum]} wins!`);
       } else {
         this.gameover("No winners!");
       }

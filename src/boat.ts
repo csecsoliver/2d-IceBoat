@@ -10,15 +10,14 @@ export class Boat {
 
   speed: Victor = new Victor(0, 0);
   maxSpeed: number = 10;
-  acceleration: number = 0.08; // units per frame at 60fps
+  acceleration: number = 0.08;
 
   turning_speed: number = 0;
-  turning_accel: number = 0.006; // radians per frame at 60fps
-  turning_max: number = 0.05; // max radians per frame at 60fps
-
-  friction: number = 0.01; // decay per frame at 60fps (lower = more slippery like ice)
-  turning_friction: number = 0.01; // decay per frame at 60fps
-  turn_thrust: number = 0.01; // forward thrust added when turning (Minecraft-like)
+  turning_accel: number = 0.006;
+  turning_max: number = 0.05;
+  friction: number = 0.01;
+  turning_friction: number = 0.01;
+  turn_thrust: number = 0.01;
 
   playernum: number;
   color: Color;
@@ -123,7 +122,6 @@ export class Boat {
     const track = this.game.track;
     if (!track) return;
     let ontrack = false;
-    // Check for collision with track pieces
     for (const piece of track.pieces) {
       if (
         this.sprite

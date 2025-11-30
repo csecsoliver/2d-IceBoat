@@ -1,5 +1,6 @@
 import { Game } from "./gamestate";
 import { tracks } from "./tracks";
+import { TrackPiece } from "./types";
 
 export async function titlescreen() {
   const app = document.getElementById("app")!;
@@ -79,6 +80,28 @@ export async function titlescreen() {
 
   container_local.appendChild(button_local_start);
   app.appendChild(container_local);
+
+
+  const container_trackbuilder = document.createElement("div");
+
+  const h2_trackbuilder = document.createElement("h2");
+  h2_trackbuilder.innerText = "Track Builder";
+  container_trackbuilder.appendChild(h2_trackbuilder);
+  const track_builder_info = document.createElement("p");
+  track_builder_info.innerHTML =
+    "Click cells to add/remove track pieces. Right-click a piece to set/remove the starting/finishing line. When done, click 'Export Track JSON' to get the track data you can use to play!<br>Note: Tracks are not saved anywhere, so be sure to export before leaving this screen.";
+  track_builder_info.style.maxWidth = "40rem";
+  container_trackbuilder.appendChild(track_builder_info);
+  const button_open_trackbuilder = document.createElement("button");
+  button_open_trackbuilder.innerText = "Open Track Builder";
+  button_open_trackbuilder.id = "button_open_trackbuilder";
+  button_open_trackbuilder.addEventListener("click", () => {
+    app.innerHTML = "";
+    app.appendChild(track_builder_ui());
+  });
+  container_trackbuilder.appendChild(button_open_trackbuilder);
+
+  app.appendChild(container_trackbuilder);
 }
 
 async function local_game(players: number) {
@@ -105,3 +128,90 @@ if (
   titlescreen();
 }
 console.log(document.getElementById("app")!.innerHTML.trim());
+
+
+function track_builder_ui(): HTMLDivElement {
+  const container = document.createElement("div");
+  const table = document.createElement("table");
+  const track = { pieces: [] as TrackPiece[], name: "Custom Track", line: {x1: 0, y1:0, x2:0, y2:0}  };
+  for (let i = 0; i < 16; i++) {
+    const row = document.createElement("tr");
+    for (let j = 0; j < 20; j++) {
+      const cell = document.createElement("td");
+      cell.style.width = "20px";
+      cell.style.height = "20px";
+      cell.style.border = "1px solid #444";
+      cell.style.backgroundColor = "#222";
+      cell.style.textAlign = "center";
+      cell.style.verticalAlign = "middle";
+      cell.style.fontWeight = "900";
+      cell.dataset["x"] = j.toString();
+      cell.dataset["y"] = i.toString();
+      cell.addEventListener("click", () => {
+        if (track.pieces.findIndex(p => p.x1 === j*50 && p.y1 === i*50) === -1) {
+          cell.style.backgroundColor = "#fff";
+          cell.style.color = "#ff0000ff";
+          track.pieces.push({ x1: j * 50, y1: i * 50, x2: j * 50 + 50, y2: i * 50 + 50 });
+        } else {
+          cell.style.backgroundColor = "#222";
+          if (cell.innerText === "|") {
+            for (const cell2 of table.querySelectorAll("td")) {
+              cell2.innerText = "";
+            }
+            track.line = { x1: 0, y1: 0, x2: 0, y2: 0 };
+          }
+        
+          track.pieces = track.pieces.filter(p => !(p.x1 === j*50 && p.y1 === i*50) );
+        }
+      });
+      cell.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        if (track.pieces.findIndex(p => p.x1 === j*50 && p.y1 === i*50) != -1) {
+          if (track.line.x1 === 0 && track.line.y1 === 0 && track.line.x2 === 0 && track.line.y2 === 0) {
+            cell.innerText = "|";
+            track.line = { x1: j * 50 + 25, y1: i * 50, x2: j * 50 + 25, y2: i * 50 + 50 };
+          } else if (track.line.y1 == i * 50 + 50) {
+            cell.innerText = "|";
+            track.line.y1 = i * 50;
+          } else if (track.line.y2 == i * 50) {
+            cell.innerText = "|";
+            track.line.y2 = i * 50 + 50;
+          } else if (cell.innerText === "|") {
+            cell.innerText = "";
+            for (const cell2 of table.querySelectorAll("td")) {
+              cell2.innerText = "";
+            }
+            track.line = { x1: 0, y1: 0, x2: 0, y2: 0 };
+          }
+        } else {
+          
+        }
+
+      });
+      row.appendChild(cell);
+    }
+    table.appendChild(row);
+    
+  }
+  container.appendChild(table);
+  const export_textarea = document.createElement("textarea");
+  export_textarea.rows = 10;
+  export_textarea.cols = 51;
+  export_textarea.readOnly = true;
+  container.appendChild(export_textarea);
+  container.appendChild(document.createElement("br"));
+  const button_export = document.createElement("button");
+  button_export.innerText = "Export Track JSON";
+  button_export.addEventListener("click", () => {
+    export_textarea.value = JSON.stringify(track);
+  });
+  container.appendChild(button_export);
+  const button_clear = document.createElement("button");
+  button_clear.innerText = "Clear Track and Close Builder";
+  button_clear.addEventListener("click", () => {
+    track.pieces = [];
+    titlescreen();
+  });
+  container.appendChild(button_clear);
+  return container;
+}
