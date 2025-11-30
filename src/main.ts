@@ -68,10 +68,7 @@ export async function titlescreen() {
   option_custom.innerText = "Custom Track (from Track Builder)";
   input_local_track_selector.appendChild(option_custom);
 
-  input_local_track_selector.addEventListener("change", () => {
-    if (input_local_track_selector.value === "Custom Track") {
-    }
-  });
+  
 
   const label_local_track_selector = document.createElement("label");
   label_local_track_selector.htmlFor = "input_local_track_selector";
@@ -147,7 +144,7 @@ async function local_game(players: number, laps: number) {
       } catch (e) {
         alert("Invalid track data provided. Returning to titlescreen.");
         titlescreen();
-        return;
+        return e;
       }
     } else {
       alert("No track data provided. Returning to titlescreen.");
@@ -248,7 +245,6 @@ function track_builder_ui(): HTMLDivElement {
             }
             track.line = { x1: 0, y1: 0, x2: 0, y2: 0 };
           }
-        } else {
         }
       });
       row.appendChild(cell);

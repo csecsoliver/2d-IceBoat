@@ -1,4 +1,4 @@
-import { Application, Assets, Color, Graphics, HTMLText, Text, Texture, Ticker } from "pixi.js";
+import { Application, Assets, Color, Graphics, Text, Texture, Ticker } from "pixi.js";
 import { Boat } from "./boat";
 import Victor from "victor";
 import { Keybinds, Track } from "./types";
